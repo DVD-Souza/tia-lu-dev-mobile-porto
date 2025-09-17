@@ -1,23 +1,23 @@
-enum class Status{
-    ACEITO,
-    FAZENDO,
-    FEITO,
-    ESPERANDO_ENTREGADOR,
-    SAIU_PARA_ENTREGA,
-    ENTREGUE
+enum class OrderStatus{
+    ACCEPTED,
+    INPROGRESS,
+    DONE,
+    WAITINGCOURIER,
+    OUTFORDELIVERY,
+    DELIVERED
 }
 
 data class Item(
     val code: Int,
     val name: String,
     val description: String,
-    val price: Float,
+    val price: Double,
     val amount: Int
 )
 
 data class Order(
     val code: Int,
-    var status: Status,
+    var status: OrderStatus,
     val value: Double,
     val itens: ArrayList<Item>,
     val discount: Boolean
@@ -25,20 +25,20 @@ data class Order(
 
 fun main() {
     var option: Int = -1
-    val menu: ArrayList<Item> = ArrayList()
-    var itemCode: Int = 0
+    val items: ArrayList<Item> = ArrayList()
     val orders: ArrayList<Order> = ArrayList()
-    var orderCode: Int = 0
+    var itemCodeGenerator: Int = 0
+    var orderCodeGenerator: Int = 0
 
     do {
         println("==================================================");
         println("                    MENU                          ");
-        println("Opção 1: CADASTRAR ITEM");
-        println("Opção 2: ATUALIZAR ITEM")
-        println("OPÇÂO 3: CRIAR PEDIDO")
-        println("Opção 4: ATUALIZAR PEDIDO")
-        println("Opção 5: CONSULTAR PEDIDO(S)")
-        println("Opção 0: ENCERRAR O SISTEMA")
+        println("1: CADASTRAR ITEM");
+        println("2: ATUALIZAR ITEM")
+        println("3: CRIAR PEDIDO")
+        println("4: ATUALIZAR PEDIDO")
+        println("5: CONSULTAR PEDIDO(S)")
+        println("0: ENCERRAR O SISTEMA")
         println("==================================================");
         print("Qual Opção deseja selecionar: ")
 
@@ -51,139 +51,194 @@ fun main() {
 
         when (option) {
             1 -> {
-                print("Quantos itens deseja cadastrar no sistema: ")
-                val qtd = readln().toInt()
+
+                var qtd: Int? = null
+
+                do {
+                    print("Quantos itens deseja cadastrar no sistema? ")
+                    qtd = readln().toIntOrNull()
+                    if (qtd == null || qtd <= 0) println("Entrada inválida. Digite um número inteiro positivo.")
+                } while (qtd == null)
+
                 for (i in 1..qtd) {
-                    println("Sobre o produto $i.")
-                    itemCode++
-                    print("Qual o nome do produto: ")
+                    println("Cadastro do item $i:")
+                    print("Nome: ")
                     val name = readln()
-                    print("Qual a descricao do produto: ")
+                    print("Descrição: ")
                     val description = readln()
-                    print("Qual o preco do produto: ")
-                    val price = readln().toFloat()
-                    print("Qual a quantidade em estoque: ")
-                    val amount = readln().toInt()
-                    menu.add(Item(itemCode, name, description, price, amount))
-                    println("Item cadastrado com sucesso, codigo: $itemCode")
+                    print("Preço: ")
+                    val price = readln().toDoubleOrNull() ?: 0.0
+                    print("Quantidade em estoque: ")
+                    val amount = readln().toIntOrNull() ?: 0
+
+                    itemCodeGenerator++
+                    items.add(Item(itemCodeGenerator, name, description, price as Double, amount))
+                    println("Item cadastrado com sucesso, código: $itemCodeGenerator")
                 }
+
+                var continuar: String
+
+                do {
+                    println("Cadastro de item aqui...")
+
+                    print("Deseja cadastrar outro item? (S/N): ")
+                    continuar = readln().trim().uppercase()
+
+                } while (continuar == "S")
+
             }
 
             2 -> {
-                if (menu.isEmpty()) {
+                if (items.isEmpty()) {
                     println("Nenhum item cadastrado para atualizar.")
-                    continue
+                }else{
+
                 }
 
-                for (item in menu) {
+                for (item in items) {
                     println(
-                        "Codigo: ${item.code}, " +
-                                "Nome: ${item.name}, " +
-                                "Descrição: ${item.description}, " +
-                                "Preço: ${item.price}, " +
-                                "Quantidade em estoque: ${item.amount}"
+                        "Código".padEnd(8) +
+                                "Nome".padEnd(20) +
+                                "Descrição".padEnd(30) +
+                                "Preço".padStart(10) +
+                                "Qtd".padStart(8)
                     )
                 }
 
-                print("Qual o codigo do item que deseja atualizar: ")
-                val thisItem = readln().toInt()
-                var ishere = false
+                print("Qual o código do item que deseja atualizar: ")
+                val chosenItemCode = readln().toIntOrNull()
 
-                for (i in 0 until menu.size) {
-                    if (menu[i].code == thisItem) {
-                        print("Qual o nome do novo produto: ")
+                if (chosenItemCode == null) {
+                    println("Entrada inválida. Digite um número inteiro.")
+                } else {
+                    val itemResult = items.withIndex().find { it.value.code == chosenItemCode }
+
+                    if (itemResult == null) {
+                        println("Item não encontrado com o código $chosenItemCode")
+                    } else {
+                        val index = itemResult.index
+                        val itemRetrieved = itemResult.value
+
+                        println("Item encontrado: ${itemRetrieved.name}")
+
+                        print("Qual o novo nome: ")
                         val name = readln()
-                        print("Qual a descricao do novo produto: ")
+                        print("Qual a nova descrição: ")
                         val description = readln()
-                        print("Qual o preco do novo produto: ")
-                        val price = readln().toFloat()
-                        print("Qual a quantidade em estoque do novo produto: ")
-                        val amount = readln().toInt()
-                        val newItem = Item(thisItem, name, description, price, amount)
-                        menu[i] = newItem
-                        ishere = true
-                        println("Item atualizado com sucesso, codigo: $thisItem")
-                        break
+                        print("Qual o novo preço: ")
+                        val price = readln().toDoubleOrNull() ?: 0.0
+                        print("Qual a nova quantidade em estoque: ")
+                        val amount = readln().toIntOrNull() ?: 0
+
+                        items[index] = Item(chosenItemCode, name, description, price.toDouble(), amount)
+
+                        println("Item atualizado com sucesso, código: $chosenItemCode")
                     }
                 }
 
-                if (!ishere) {
-                    println("O código informado é inválido.")
-                }
+
             }
 
             3 -> {
-                if (menu.isEmpty()) {
-                    println("Nenhum item cadastrado, cadastre antes de fazer pedidos.")
-                    continue
+                if (items.isEmpty()) {
+                    println("Nenhum item cadastrado para atualizar.")
+                } else {
+
                 }
 
-                print("Quantos itens deseja adicionar ao pedido: ")
-                val qtd = readln().toInt()
-                var value = 0.0
+                print("Quantos itens forem necessários: ")
+                val amount = readln().toInt()
+                var orderTotal = 0.0
                 var hasDiscount = false
-                val itensOrder: ArrayList<Item> = ArrayList()
-                orderCode++
+                val orderItems: ArrayList<Item> = ArrayList()
 
-                for (i in 1..qtd) {
-                    for (item in menu) {
-                        println(
-                            "Codigo: ${item.code}, " +
-                                    "Nome: ${item.name}, " +
-                                    "Descrição: ${item.description}, " +
-                                    "Preço: ${item.price}, " +
-                                    "Quantidade em estoque: ${item.amount}"
-                        )
+
+                println("\u001b[H\u001b[2J")
+                println("=== MENU DE PRODUTOS ===")
+                println(
+                    "Código".padEnd(8) +
+                            "Nome".padEnd(20) +
+                            "Descrição".padEnd(30) +
+                            "Preço".padStart(10) +
+                            "Qtd".padStart(8)
+                )
+                println("-".repeat(80))
+
+                for (item in items) {
+                    println(
+                        "${item.code.toString().padEnd(8)}" +
+                                "${item.name.padEnd(20)}" +
+                                "${item.description.padEnd(30)}" +
+                                "R$ ${"%.2f".format(item.price).padStart(7)}" +
+                                "${item.amount.toString().padStart(8)}"
+                    )
+                }
+
+
+                for (i in 1..amount) {
+                    print("Qual código do $i° item que você quer adicionar: ")
+                    val code = readln().toIntOrNull()
+                    if (code == null) {
+                        println("Entrada inválida! Digite apenas números.")
+                        continue
                     }
 
-                    print("Qual codigo do $i° item que você quer adicionar: ")
-                    val code = readln().toInt()
-
-                    val item = menu.find { it.code == code }
+                    val item = items.find { it.code == code }
                     if (item != null) {
-                        itensOrder.add(item)
-                        value += item.price
+                        orderItems.add(item)
+                        orderTotal += item.price
+                        println("Item '${item.name}' adicionado com sucesso!")
                     } else {
-                        println("O código do item inserido é inválido")
+                        println("O código do item inserido é inválido.")
                     }
                 }
 
-                print("Você deseja usar um cupom de desconto? (S/N)")
-                when (readln().uppercase()) {
+
+                println("\nTotal parcial do pedido: R$ %.2f".format(orderTotal))
+
+
+                print("Você deseja usar um cupom de desconto? (S/N): ")
+                val discountOption = readln().trim().uppercase()
+
+                when(discountOption) {
                     "S" -> {
                         hasDiscount = true
+                        val discountPercentage = 0.10
+                        orderTotal*= (1 - discountPercentage)
                         println("Você ganhou 10% de desconto.")
-                        value *= 0.90
                     }
-
                     "N" -> {
                         hasDiscount = false
                         println("Você escolheu não usar o cupom.")
                     }
-
-                    else -> println("Opção inválida")
+                    else -> {
+                        hasDiscount = false
+                        println("Opção inválida. Nenhum desconto aplicado.")
+                    }
                 }
 
-                value = Math.round(value * 100) / 100.0
-
-                if (itensOrder.isEmpty()) {
+                if (orderItems.isEmpty()) {
                     println("Pedido não criado, nenhum item válido selecionado.")
-                    continue
+                } else {
+
                 }
 
-                orders.add(Order(orderCode, Status.ACEITO, value, itensOrder, hasDiscount))
-                println("O pedido de código $orderCode foi aceito, valor final: R$ $value")
+                orders.add(Order(orderCodeGenerator, OrderStatus.ACCEPTED
+
+                    , orderTotal, orderItems, hasDiscount))
+                println("O pedido de código orderCodeGenerator foi aceito, valor final: R$ $orderTotal")
             }
 
             4 -> {
                 if (orders.isEmpty()) {
                     println("Nenhum pedido cadastrado para atualizar.")
-                    continue
+                } else {
                 }
 
                 for (order in orders) {
                     println(
                         "Codigo: ${order.code} " +
+
                                 "Status: ${order.status} " +
                                 "Valor: ${order.value}"
                     )
@@ -191,90 +246,109 @@ fun main() {
 
                 println("Qual o codigo do pedido a ser atualizado: ")
                 val code = readln().toInt()
-                var ishere = false
+                var isHere = false
 
-                for (i in 0 until orders.size) {
-                    if (orders[i].code == code) {
-                        println("Qual o novo Status do pedido: ")
-                        println(" 1 - FAZENDO.")
-                        println(" 2 - FEITO.")
-                        println(" 3 - ESPERANDO ENTREGADOR.")
-                        println(" 4 - SAIU PARA ENTREGA.")
-                        println(" 5 - ENTREGUE.")
-                        print("Digite a opção: ")
-                        when (readln().toInt()) {
-                            1 -> orders[i].status = Status.FAZENDO
-                            2 -> orders[i].status = Status.FEITO
-                            3 -> orders[i].status = Status.ESPERANDO_ENTREGADOR
-                            4 -> orders[i].status = Status.SAIU_PARA_ENTREGA
-                            5 -> orders[i].status = Status.ENTREGUE
+                val order = orders.find { it.code == code }
+
+                if (order != null) {
+                    println("Qual o novo Status do pedido: ")
+                    println(" 1 - FAZENDO.")
+                    println(" 2 - FEITO.")
+                    println(" 3 - ESPERANDO ENTREGADOR.")
+                    println(" 4 - SAIU PARA ENTREGA.")
+                    println(" 5 - ENTREGUE.")
+                    print("Digite a opção: ")
+
+                    val option = readln().toInt()
+                    val newStatus = when (option) {
+                        1 -> OrderStatus.INPROGRESS
+                        2 -> OrderStatus.DONE
+                        3 -> OrderStatus.WAITINGCOURIER
+                        4 -> OrderStatus.OUTFORDELIVERY
+                        5 -> OrderStatus.DELIVERED
+                        else -> {
+                            println("Opção inválida, status não alterado.")
+                            null
                         }
-                        ishere = true
-                        println("O pedido de código $code teve seu status atualizado para ${orders[i].status}")
-                        break
                     }
-                }
 
-                if (!ishere) {
-                    println("O código informado é inválido.")
-                }
-            }
+                    if (newStatus != null) {
+                        order.status = newStatus
+                        println("O pedido de código ${order.code} teve seu status atualizado para ${order.status}")
+                    }
+                } else {
+                    println("Nenhum pedido encontrado com o código $code.")
+                   }
+               }
+                    5 -> {
 
-            5 -> {
-                if (orders.isEmpty()) {
-                    println("Nenhum pedido cadastrado.")
-                    continue
-                }
+                        if (orders.isEmpty()) {
+                            println("Nenhum pedido cadastrado")
+                        } else {
+                            println("Filtro de pedidos:")
+                            OrderStatus.entries.forEachIndexed { index, status ->
+                                println("${index + 1} - $status")
+                            }
+                            println(" 1 - TODOS")
+                            println(" 2 - ACEITO")
+                            println(" 3 - FAZENDO")
+                            println(" 4 - FEITO")
+                            println(" 5 - ESPERANDO ENTREGADOR")
+                            println(" 6 - SAIU PARA ENTREGA")
+                            println(" 7 - ENTREGUE")
 
-                println("Filtro de pedidos:")
-                println(" 1 - TODOS")
-                println(" 2 - ACEITO")
-                println(" 3 - FAZENDO.")
-                println(" 4 - FEITO.")
-                println(" 5 - ESPERANDO ENTREGADOR.")
-                println(" 6 - SAIU PARA ENTREGA.")
-                println(" 7 - ENTREGUE.")
+                            val statusInput = readln().toIntOrNull()
 
-                val status = readln().toInt()
-                var filter: Status? = null
-                var ishere = false
+                            val filter: OrderStatus? = when (statusInput) {
+                                2 -> OrderStatus.ACCEPTED
+                                3 -> OrderStatus.INPROGRESS
+                                4 -> OrderStatus.DONE
+                                5 -> OrderStatus.WAITINGCOURIER
+                                6 -> OrderStatus.OUTFORDELIVERY
+                                7 -> OrderStatus.DELIVERED
+                                else -> null
+                            }
 
+                            if (filter == null) {
+                                println("Opção inválida. Nenhum status selecionado.")
+                            }
 
-                when (status) {
-                    2 -> filter = Status.ACEITO
-                    3 -> filter = Status.FAZENDO
-                    4 -> filter = Status.FEITO
-                    5 -> filter = Status.ESPERANDO_ENTREGADOR
-                    6 -> filter = Status.SAIU_PARA_ENTREGA
-                    7 -> filter = Status.ENTREGUE
-                }
+                            val filteredOrders: List<Order> = if (filter == null) {
+                                orders
+                            } else {
+                                orders.filter { it.status == filter }
+                            }
 
-                for (order in orders) {
-                    if (filter == null || order.status == filter) {
-                        println("Codigo: ${order.code}")
-                        println("Status: ${order.status}")
-                        println("Valor: ${order.value}")
-                        println("Itens[ ")
-                        for (item in order.itens) {
-                            print(
-                                "          Codigo: ${item.code}, " +
-                                          "Nome: ${item.name}, " +
-                                          "Descrição: ${item.description}, " +
-                                          "Preço: ${item.price} ]"
-                            )
+                            if (filteredOrders.isEmpty()) {
+                                println("Nenhum pedido encontrado com este STATUS.")
+                            } else {
+                                for (order in filteredOrders) {
+                                    println("Codigo: ${order.code}")
+                                    println("Status: ${order.status}")
+                                    println("Valor: ${order.value}")
+                                    println("Itens [")
+                                    for (item in order.itens) {
+                                        println(
+                                            "    Código: ${item.code}, " +
+                                                    "Nome: ${item.name}, " +
+                                                    "Descrição: ${item.description}, " +
+                                                    "Preço: ${item.price}"
+                                        )
+                                    }
+                                    println("]")
+                                    println("Desconto: ${if (order.discount) "10%" else "0%"}")
+                                }
+                            }
+                            println("Nenhum pedido encontrado com este STATUS.")
+                            }
                         }
-                        println("Desconto: ${if (order.discount) "10%" else "0%"}")
-                        ishere = true
+                        0 -> {
+                            println("O Sistema será encerrado")
+                        }
                     }
-                }
-                if (!ishere){
-                    println("Nenhum pedido encontrado com este STATUS.")
-                }
-            }
+        } while (option != 0)
+    }
 
-            0 -> {
-                println("O Sistema será encerrado")
-            }
-        }
-    } while (option != 0)
-}
+
+
+
